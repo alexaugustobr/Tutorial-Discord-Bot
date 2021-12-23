@@ -1,22 +1,27 @@
+import discord
 import os
-from dotenv import load_dotenv
-from nextcord.ext import commands
 
-def main():
-    client = commands.Bot(command_prefix="?")
+client = discord.Client()
 
-    load_dotenv()
+def is_image(attachment):
+    return attachment.height != None
 
-    @client.event
-    async def on_ready():
-        print(f"{client.user.name} has connected to Discord.")
+async def add_reaction(message):
+    await message.add_reaction('⬆')
+    await message.add_reaction('⬇')
 
-    # load all cogs
-    for folder in os.listdir("modules"):
-        if os.path.exists(os.path.join("modules", folder, "cog.py")):
-            client.load_extension(f"modules.{folder}.cog")
+@client.event
+async def on_ready():
+    print('We have logged in as {0.user}'.format(client))
 
-    client.run(os.getenv("DISCORD_TOKEN"))
+@client.event
+async def on_message(message):
 
-if __name__ == '__main__':
-    main()
+    if len(message.attachments) == 0:
+        return
+
+    for attachment in message.attachments:
+        if is_image(attachment):
+            await add_reaction(message)
+
+client.run(os.getenv("DISCORD_TOKEN"))
